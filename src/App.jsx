@@ -8,6 +8,9 @@ import DashboardPage from './pages/DashboardPage'
 import TopicPage from './pages/TopicPage'
 import InterviewPage from "./pages/InterviewPage"
 import ReportsPage from "./pages/ReportsPage"
+import VoiceInterviewPage from "./pages/VoiceInterviewPage"
+import HistoryPage from "./pages/HistoryPage"
+
 
 
 
@@ -35,6 +38,10 @@ const App = () => {
         element={<Protected><InterviewPage /></Protected>} />
       <Route path="/reports"
         element={<Protected><ReportsPage /></Protected>} />
+      <Route path="/voice-interview"
+        element={<Protected><VoiceInterviewPage /></Protected>} />
+      <Route path="/history"
+        element={<Protected><HistoryPage /></Protected>} />
 
     </Routes>
   )

@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+@layer utilities {
+    .animate-ripple-purple {
+        animation: ripple-purple 2s infinite;
+    }
+
+    .animate-ripple-blue {
+        animation: ripple-blue 2s infinite;
+    }
+}
+
+@keyframes ripple-purple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(168, 85, 247, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+    }
+}
+
+@keyframes ripple-blue {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}

@@ -30,13 +30,20 @@ const TopicPage = () => {
                     </div>
                 </>
             )}
-
-            <button
-                className="bg-blue-600 text-white px-4 py-2 rounded"
-                onClick={() => navigate(`/interview?topic=${topic.title}`)}
-            >
-                Start Mock Interview 🎤
-            </button>
+            <div className="flex gap-4">
+                <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded"
+                    onClick={() => navigate(`/interview?topic=${topic.title}`)}
+                >
+                    Start Mock Interview 🎤
+                </button>
+                <button
+                    className="bg-purple-600 text-white w-full py-3 rounded"
+                    onClick={() => navigate(`/voice-interview?topic=${topic.title}`)}
+                >
+                    🎙️ Start Voice Interview
+                </button>
+            </div>
         </div>
     )
 }
