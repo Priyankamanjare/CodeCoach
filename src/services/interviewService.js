@@ -1,5 +1,16 @@
 import { db } from "./firebase";
-import { collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from "firebase/firestore";
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    getDocs,
+    orderBy,
+    serverTimestamp,
+    doc,
+    deleteDoc,
+    getDoc
+} from "firebase/firestore";
 
 const COLLECTION_NAME = "interviews";
 
@@ -49,6 +60,40 @@ export const getUserInterviews = async (userId) => {
                 throw retryError;
             }
         }
+        throw e;
+    }
+};
+
+export const getFeedbackReport = async (reportId) => {
+    try {
+        const docRef = doc(db, "feedbackReports", reportId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() };
+        } else {
+            console.log("No such feedback report!");
+            return null;
+        }
+    } catch (e) {
+        console.error("Error getting feedback report:", e);
+        throw e;
+    }
+};
+
+export const deleteInterview = async (interviewId, feedbackReportId) => {
+    try {
+        // Delete the interview document
+        await deleteDoc(doc(db, COLLECTION_NAME, interviewId));
+
+        // If there's a feedback report, delete that too
+        if (feedbackReportId) {
+            await deleteDoc(doc(db, "feedbackReports", feedbackReportId));
+        }
+
+        console.log("Interview and feedback deleted successfully");
+        return true;
+    } catch (e) {
+        console.error("Error deleting interview:", e);
         throw e;
     }
 };

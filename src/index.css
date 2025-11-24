@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@layer base {
+    body {
+        @apply bg-gray-900 text-white min-h-screen;
+        background-image: url('/circuit_bg.png'), linear-gradient(to bottom, #0f172a, #000000);
+        background-blend-mode: overlay;
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+    }
+}
+
 @layer utilities {
     .animate-ripple-purple {
         animation: ripple-purple 2s infinite;
@@ -8,6 +19,23 @@
     .animate-ripple-blue {
         animation: ripple-blue 2s infinite;
     }
+
+    .neon-border-blue {
+        box-shadow: 0 0 20px rgba(59, 234, 246, 0.5), inset 0 0 5px rgba(59, 130, 246, 0.2);
+    }
+
+    .neon-border-orange {
+        box-shadow: 0 0 20px rgba(219, 78, 222, 0.5), inset 0 0 5px rgba(249, 115, 22, 0.2);
+    }
+
+    .neon-border-purple {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 0 5px rgba(168, 85, 247, 0.2);
+    }
+
+    .neon-border-green {
+        box-shadow: 0 0 20px rgba(116, 180, 232, 0.5), inset 0 0 5px rgba(34, 197, 94, 0.2);
+    }
+
 }
 
 @keyframes ripple-purple {
@@ -36,4 +64,20 @@
     100% {
         box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
     }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
 }

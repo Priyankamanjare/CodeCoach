@@ -79,6 +79,8 @@ Return ONLY a valid JSON object in this exact format:
 {
   "technicalScore": number (1-5),
   "communicationScore": number (1-5),
+  "confidenceScore": number (1-5),
+  "structureScore": number (1-5),
   "suggestions": string
 }
 

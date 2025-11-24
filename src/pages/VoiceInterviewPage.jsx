@@ -3,6 +3,7 @@ import { vapi } from "../services/vapiService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { saveInterview } from "../services/interviewService";
+import { generateFeedback } from "../services/aiService";
 
 const VoiceInterviewPage = () => {
     const { currentUser } = useAuth();
@@ -172,10 +173,35 @@ const VoiceInterviewPage = () => {
         setIsSaving(true);
         if (messages.length > 0) {
             try {
+                // Generate AI feedback
+                const feedback = await generateFeedback(messages, topic, currentUser.uid);
+
+                // Calculate average score (if feedback exists)
+                let overallScore = 0;
+                if (feedback) {
+                    const scores = [
+                        feedback.technicalScore,
+                        feedback.communicationScore,
+                        feedback.confidenceScore,
+                        feedback.structureScore
+                    ].filter(s => typeof s === 'number');
+                    if (scores.length > 0) {
+                        overallScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    }
+                }
+
                 await saveInterview(currentUser.uid, {
                     topic,
                     duration: timer,
-                    transcript: messages
+                    transcript: messages,
+                    feedbackReportId: feedback?.id || null,
+                    overallScore: overallScore || 0,
+                    feedbackSummary: feedback ? {
+                        technical: feedback.technicalScore,
+                        communication: feedback.communicationScore,
+                        confidence: feedback.confidenceScore,
+                        structure: feedback.structureScore
+                    } : null
                 });
                 console.log("Interview saved successfully");
             } catch (e) {
@@ -196,7 +222,7 @@ const VoiceInterviewPage = () => {
     const userMessages = messages.filter((m) => m.role === "user");
 
     return (
-        <div className="h-screen w-full bg-gray-900 text-white flex flex-col overflow-hidden font-sans">
+        <div className="h-screen w-full bg-gray-900/90 backdrop-blur-sm text-white flex flex-col overflow-hidden font-sans pt-20">
             {/* Header */}
             <div className="w-full p-4 bg-gray-800/50 backdrop-blur-md flex justify-between items-center border-b border-gray-700 z-20">
                 <div className="flex items-center gap-2">
@@ -321,7 +347,7 @@ const VoiceInterviewPage = () => {
                 >
                     {isSaving ? (
                         <>
-                            <span className="animate-spin">⏳</span> Saving...
+                            <span className="animate-spin">⏳</span> Generating Feedback...
                         </>
                     ) : (
                         <>

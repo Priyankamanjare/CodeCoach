@@ -2,7 +2,7 @@ const topics = [
     {
         id: "javascript",
         title: "JavaScript",
-        description: "Ace JS interviews with core fundamentals and tricky concepts."
+        description: "Ace JavaScript interviews with these core fundamentals and tricky concepts"
     },
     {
         id: "react",
@@ -33,6 +33,11 @@ const topics = [
         id: "dbms",
         title: "DBMS",
         description: "Queries, normalization, indexing — database must-knows."
+    },
+    {
+        id: "fullStack",
+        title: "Full Stack Development",
+        description: "Build complete web applications with frontend and backend skills."
     },
 ];
 

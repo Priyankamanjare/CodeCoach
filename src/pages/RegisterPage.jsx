@@ -3,8 +3,9 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 
 const RegisterPage = () => {
-    const { register } = useAuth()
+    const { register, googleSignIn } = useAuth()
     const navigate = useNavigate()
+    const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
@@ -13,7 +14,7 @@ const RegisterPage = () => {
         e.preventDefault()
         try {
             setError("")
-            await register(email, password)
+            await register(email, password, name)
             navigate("/dashboard")
         } catch {
             setError("Signup failed")
@@ -21,27 +22,55 @@ const RegisterPage = () => {
     }
 
     return (
-        <div className='max-w-sm mx-auto mt-20'>
-            <h2 className='text-2xl font-bold mb-4'>Create Account</h2>
-            {error && <p className='text-red-500'>{error}</p>}
+        <div className='flex flex-col items-center justify-center h-screen'>
+            <div className="text-2xl text-center  font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-cyan-500">
+                CodeCoach
+            </div>
+            <div className='max-w-sm mx-auto p-6 rounded-lg'>
+                <h2 className='text-xl font-bold mb-4 text-center'>Create Account</h2>
+                {error && <p className='text-red-500 p-2'>{error}</p>}
 
-            <form className='space-y-3' onSubmit={handleSubmit}>
-                <input className='w-full border p-2'
-                    type="email" placeholder="Email"
-                    onChange={(e) => setEmail(e.target.value)} />
+                <form className='space-y-4' onSubmit={handleSubmit}>
+                    <input className='w-full border p-2 rounded-2xl'
+                        type="text" placeholder="Full Name"
+                        required
+                        onChange={(e) => setName(e.target.value)} />
 
-                <input className='w-full border p-2'
-                    type="password" placeholder="Password"
-                    onChange={(e) => setPassword(e.target.value)} />
+                    <input className='w-full border p-2 rounded-2xl'
+                        type="email" placeholder="Email"
+                        onChange={(e) => setEmail(e.target.value)} />
 
-                <button className='w-full bg-blue-600 text-white p-2 rounded'>
-                    Sign Up
-                </button>
-            </form>
+                    <input className='w-full border p-2 rounded-2xl'
+                        type="password" placeholder="Password"
+                        onChange={(e) => setPassword(e.target.value)} />
 
-            <p className='mt-4 text-sm'>
-                Already have an account? <Link className='text-blue-600' to="/login">Login</Link>
-            </p>
+                    <button className='w-full bg-blue-600 text-white p-2 rounded-2xl'>
+                        Sign Up
+                    </button>
+                    <button
+                        onClick={async () => {
+                            try {
+                                await googleSignIn();
+                                navigate("/dashboard");
+                            } catch (err) {
+                                console.log(err);
+                            }
+                        }}
+                        className="w-full text-gray-600 bg-white border flex justify-center items-center gap-2 py-2 rounded-2xl shadow"
+                    >
+                        <img
+                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            alt="Google"
+                            className="w-5 h-5"
+                        />
+                        Sign up with Google
+                    </button>
+                </form>
+
+                <p className='mt-4 text-sm text-center'>
+                    Already have an account? <Link className='text-blue-600' to="/login">Login</Link>
+                </p>
+            </div>
         </div>
     )
 }
