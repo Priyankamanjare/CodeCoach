@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { saveInterview } from "../services/interviewService";
 import { generateFeedback } from "../services/aiService";
+import { getUserStats, incrementCallCount } from "../services/userService";
 
 const VoiceInterviewPage = () => {
     const { currentUser } = useAuth();
@@ -18,6 +19,8 @@ const VoiceInterviewPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [status, setStatus] = useState("idle"); // idle, speaking, listening, thinking
     const [isTestMode, setIsTestMode] = useState(false);
+    const [callsUsed, setCallsUsed] = useState(0);
+    const [loadingStats, setLoadingStats] = useState(true);
     const mockIntervalRef = useRef(null);
     const transcriptContainerRef = useRef(null);
 
@@ -27,6 +30,25 @@ const VoiceInterviewPage = () => {
             transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    // Fetch user stats
+    useEffect(() => {
+        if (currentUser) {
+            getUserStats(currentUser.uid).then(stats => {
+                setCallsUsed(stats.callsUsed || 0);
+                setLoadingStats(false);
+            });
+        }
+    }, [currentUser]);
+
+    // Auto-end call after 5 minutes (300 seconds)
+    useEffect(() => {
+        if (isInterviewActive && timer >= 300) {
+            vapi.stop(); // Stop immediately
+            alert("Call limit reached (5 minutes). Ending interview.");
+            endCall();
+        }
+    }, [timer, isInterviewActive]);
 
     // Vapi listeners – disabled when test mode is on
     useEffect(() => {
@@ -138,6 +160,21 @@ const VoiceInterviewPage = () => {
             startMockCall();
             return;
         }
+
+        if (callsUsed >= 3) {
+            alert("You have reached your limit of 3 free voice interviews.");
+            return;
+        }
+
+        // Increment call count
+        const success = await incrementCallCount(currentUser.uid);
+        if (success) {
+            setCallsUsed(prev => prev + 1);
+        } else {
+            alert("Failed to start call. Please try again.");
+            return;
+        }
+
         setError(null);
         setStatus("thinking"); // connecting
         try {
@@ -263,8 +300,16 @@ const VoiceInterviewPage = () => {
                     <div className="absolute inset-0 bg-gray-950 backdrop-blur-sm flex flex-col justify-center items-center z-50 transition-all">
                         <div className="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-700 max-w-sm w-full text-center mx-4">
                             <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-purple-500/30">🤖</div>
-                            <h2 className="text-xl font-bold mb-1">Ready to Interview?</h2>
-                            <p className="text-gray-400 mb-4 text-sm">Topic: <span className="text-white font-semibold">{topic}</span></p>
+                            <h2 className="text-lg font-bold mb-1">Ready to Interview?</h2>
+                            <p className="text-gray-400 mb-2 text-sm">Topic: <span className="text-white font-semibold">{topic}</span></p>
+
+                            {!loadingStats && !isTestMode && (
+                                <div className="flex items-center justify-center gap-2 mb-2 bg-gray-800/50 p-2 rounded border border-gray-700">
+                                    <p className="text-xs text-gray-300">Free Calls Remaining</p>
+                                    <p className="text-xs text-gray-400">{Math.max(0, 3 - callsUsed)} / 3 available</p>
+                                </div>
+                            )}
+
                             {/* Test mode toggle */}
                             <div className="flex items-center justify-center gap-3 mb-4 bg-gray-700/50 p-2 rounded-lg">
                                 <span className={`text-xs font-medium ${!isTestMode ? 'text-white' : 'text-gray-400'}`}>Real AI</span>
@@ -278,9 +323,15 @@ const VoiceInterviewPage = () => {
                                 <div className="bg-red-500/10 border border-red-500/50 text-red-200 p-2 rounded mb-4 text-xs">{error}</div>
                             )}
                             <button onClick={startCall}
-                                className={`w-full py-3 rounded-xl text-base font-bold transition-all transform hover:scale-[1.02] shadow-xl ${isTestMode ? "bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500"}`}
+                                disabled={!isTestMode && callsUsed >= 3}
+                                className={`w-full py-3 rounded-xl text-base font-bold transition-all transform hover:scale-[1.02] shadow-xl ${!isTestMode && callsUsed >= 3
+                                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                                    : isTestMode
+                                        ? "bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500"
+                                        : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500"
+                                    }`}
                             >
-                                {isTestMode ? "Start Test Interview" : "Start Interview"}
+                                {!isTestMode && callsUsed >= 3 ? "Limit Reached" : isTestMode ? "Start Test Interview" : "Start Interview"}
                             </button>
                         </div>
                     </div>
