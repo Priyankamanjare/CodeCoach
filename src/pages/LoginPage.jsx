@@ -25,7 +25,7 @@ const LoginPage = () => {
                 CodeCoach
             </div>
             <div className='max-w-sm mx-auto p-6 rounded-lg'>
-                <h2 className='text-xl font-bold mb-4 text-center'>Login</h2>
+                <h2 className='text-xl font-bold mb-4 text-center'>Sign In</h2>
                 {error && <p className='text-red-500 p-2'>{error}</p>}
 
                 <form className='space-y-4' onSubmit={handleSubmit}>
