@@ -19,11 +19,13 @@ const VoiceInterviewPage = () => {
     const [status, setStatus] = useState("idle"); // idle, speaking, listening, thinking
     const [isTestMode, setIsTestMode] = useState(false);
     const mockIntervalRef = useRef(null);
-    const messagesEndRef = useRef(null);
+    const transcriptContainerRef = useRef(null);
 
     // Auto‑scroll for transcript panels (used only in mock mode)
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (transcriptContainerRef.current) {
+            transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
+        }
     }, [messages]);
 
     // Vapi listeners – disabled when test mode is on
@@ -204,15 +206,22 @@ const VoiceInterviewPage = () => {
                     } : null
                 });
                 console.log("Interview saved successfully");
+                setIsSaving(false);
+                if (feedback?.id) {
+                    navigate(`/report/${feedback.id}`);
+                } else {
+                    navigate('/history');
+                }
             } catch (e) {
                 console.error("Failed to save interview:", e);
                 alert("Failed to save interview. Please check your connection.");
+                setIsSaving(false);
             }
         } else {
             console.warn("No messages to save");
+            setIsSaving(false);
+            navigate('/history');
         }
-        setIsSaving(false);
-        navigate(`/dashboard?refresh=${Date.now()}`);
     };
 
     const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
@@ -222,9 +231,9 @@ const VoiceInterviewPage = () => {
     const userMessages = messages.filter((m) => m.role === "user");
 
     return (
-        <div className="h-screen w-full bg-gray-900/90 backdrop-blur-sm text-white flex flex-col overflow-hidden font-sans pt-20">
+        <div className="fixed inset-0 w-full bg-gray-950 backdrop-blur-sm text-white flex flex-col overflow-hidden font-sans pt-16 z-0">
             {/* Header */}
-            <div className="w-full p-4 bg-gray-800/50 backdrop-blur-md flex justify-between items-center border-b border-gray-700 z-20">
+            <div className="w-full px-4 py-2 bg-gray-950 backdrop-blur-md flex justify-between items-center border-b border-gray-700 z-20 shrink-0">
                 <div className="flex items-center gap-2">
                     <span className="text-2xl">🎤</span>
                     <h2 className="text-xl font-semibold tracking-wide">
@@ -242,34 +251,34 @@ const VoiceInterviewPage = () => {
 
             {/* Mock mode banner */}
             {isTestMode && (
-                <div className="w-full text-center bg-yellow-600 text-black py-2">
+                <div className="w-full text-center bg-yellow-600 text-black py-2 shrink-0">
                     Mock Mode Active – AI responses are simulated.
                 </div>
             )}
 
             {/* Main Stage */}
-            <div className="flex-1 flex flex-col md:flex-row relative">
+            <div className="flex-1 flex flex-col md:flex-row relative overflow-y-auto min-h-0">
                 {/* Start Overlay */}
                 {!isInterviewActive && (
-                    <div className="absolute inset-0 bg-gray-900/90 backdrop-blur-sm flex flex-col justify-center items-center z-50 transition-all">
-                        <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 max-w-md w-full text-center">
-                            <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-lg shadow-purple-500/30">🤖</div>
-                            <h2 className="text-2xl font-bold mb-2">Ready to Interview?</h2>
-                            <p className="text-gray-400 mb-6">Topic: <span className="text-white font-semibold">{topic}</span></p>
+                    <div className="absolute inset-0 bg-gray-950 backdrop-blur-sm flex flex-col justify-center items-center z-50 transition-all">
+                        <div className="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-700 max-w-sm w-full text-center mx-4">
+                            <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg shadow-purple-500/30">🤖</div>
+                            <h2 className="text-xl font-bold mb-1">Ready to Interview?</h2>
+                            <p className="text-gray-400 mb-4 text-sm">Topic: <span className="text-white font-semibold">{topic}</span></p>
                             {/* Test mode toggle */}
-                            <div className="flex items-center justify-center gap-3 mb-8 bg-gray-700/50 p-3 rounded-lg">
-                                <span className={`text-sm font-medium ${!isTestMode ? 'text-white' : 'text-gray-400'}`}>Real AI</span>
+                            <div className="flex items-center justify-center gap-3 mb-4 bg-gray-700/50 p-2 rounded-lg">
+                                <span className={`text-xs font-medium ${!isTestMode ? 'text-white' : 'text-gray-400'}`}>Real AI</span>
                                 <button onClick={() => setIsTestMode(!isTestMode)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isTestMode ? 'bg-yellow-500' : 'bg-gray-600'}`}>
-                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isTestMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${isTestMode ? 'bg-yellow-500' : 'bg-gray-600'}`}>
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isTestMode ? 'translate-x-5' : 'translate-x-1'}`} />
                                 </button>
-                                <span className={`text-sm font-medium ${isTestMode ? 'text-yellow-400' : 'text-gray-400'}`}>Test Mode</span>
+                                <span className={`text-xs font-medium ${isTestMode ? 'text-yellow-400' : 'text-gray-400'}`}>Test Mode</span>
                             </div>
                             {error && (
-                                <div className="bg-red-500/10 border border-red-500/50 text-red-200 p-3 rounded mb-6 text-sm">{error}</div>
+                                <div className="bg-red-500/10 border border-red-500/50 text-red-200 p-2 rounded mb-4 text-xs">{error}</div>
                             )}
                             <button onClick={startCall}
-                                className={`w-full py-4 rounded-xl text-lg font-bold transition-all transform hover:scale-[1.02] shadow-xl ${isTestMode ? "bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500"}`}
+                                className={`w-full py-3 rounded-xl text-base font-bold transition-all transform hover:scale-[1.02] shadow-xl ${isTestMode ? "bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500" : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500"}`}
                             >
                                 {isTestMode ? "Start Test Interview" : "Start Interview"}
                             </button>
@@ -299,18 +308,17 @@ const VoiceInterviewPage = () => {
                         </div>
                         <div className="flex-1 flex flex-col p-4 overflow-y-auto">
                             <h3 className="text-lg font-semibold mb-2 text-gray-200">Full Transcript</h3>
-                            <div className="flex-1 bg-gray-800 p-2 rounded overflow-y-auto max-h-64">
+                            <div ref={transcriptContainerRef} className="flex-1 bg-gray-800 p-2 rounded overflow-y-auto max-h-64">
                                 {messages.length === 0 ? <p className="text-gray-400">No transcript yet.</p> : messages.map((msg, i) => (
                                     <p key={i} className="text-sm mb-1"><strong>{msg.role === "ai" ? "AI" : "You"}:</strong> {msg.text}</p>
                                 ))}
-                                <div ref={messagesEndRef} />
                             </div>
                         </div>
                     </>
                 ) : (
                     // Real interview – two avatar columns, no transcript panels
                     <>
-                        <div className="flex-1 flex flex-col justify-center items-center p-8 border-r border-gray-800 bg-gradient-to-b from-gray-900 to-gray-800 relative overflow-hidden">
+                        <div className="flex-1 flex flex-col justify-center items-center p-4 md:p-8 border-r border-gray-800 bg-gradient-to-b from-gray-900 to-gray-800 relative overflow-hidden">
                             <div className={`absolute w-96 h-96 bg-purple-600/20 rounded-full blur-3xl transition-opacity duration-1000 ${status === "speaking" ? "opacity-100" : "opacity-20"}`} />
                             <div className="relative z-10 flex flex-col items-center">
                                 <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full bg-gray-700 border-4 border-gray-600 flex items-center justify-center text-6xl md:text-7xl shadow-2xl transition-all duration-300 ${status === "speaking" ? "animate-ripple-purple border-purple-500 scale-105" : ""}`}>
@@ -322,7 +330,7 @@ const VoiceInterviewPage = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex-1 flex flex-col justify-center items-center p-8 bg-gray-900 relative overflow-hidden">
+                        <div className="flex-1 flex flex-col justify-center items-center p-4 md:p-8 bg-gray-900 relative overflow-hidden">
                             <div className={`absolute w-96 h-96 bg-blue-600/10 rounded-full blur-3xl transition-opacity duration-500 ${status === "listening" ? "opacity-100" : "opacity-0"}`} />
                             <div className="relative z-10 flex flex-col items-center">
                                 <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-800 border-4 border-gray-700 flex items-center justify-center text-4xl md:text-5xl shadow-2xl transition-all duration-300 ${status === "listening" ? "animate-ripple-blue border-blue-500 scale-105" : ""}`}>
@@ -339,7 +347,7 @@ const VoiceInterviewPage = () => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 bg-gray-900 border-t border-gray-800 flex justify-center gap-4">
+            <div className="flex justify-center p-4 bg-gray-950/50 backdrop-blur-md shrink-0">
                 <button
                     className={`px-8 py-3 rounded-full font-bold text-white shadow-lg transition-all transform flex items-center gap-2 ${isSaving ? "bg-gray-600 cursor-not-allowed" : "bg-red-600 hover:bg-red-500 hover:scale-105"}`}
                     onClick={endCall}

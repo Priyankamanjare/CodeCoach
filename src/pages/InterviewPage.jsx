@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getAIResponse, generateFeedback } from "../services/aiService"
+import { saveInterview } from "../services/interviewService"
 import { useAuth } from "../context/AuthContext"
 
 const MAX_QUESTIONS = 2
@@ -31,7 +32,7 @@ const InterviewPage = () => {
     const [questionCount, setQuestionCount] = useState(1)
     const [userInput, setUserInput] = useState("")
     const [loadingFeedback, setLoadingFeedback] = useState(false)
-    const chatEndRef = useRef(null)
+    const chatContainerRef = useRef(null)
 
     const speakText = (text) => {
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(text))
@@ -40,7 +41,10 @@ const InterviewPage = () => {
     useEffect(() => {
         const last = messages[messages.length - 1]
         if (last?.sender === "bot") speakText(last.text)
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
+
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+        }
     }, [messages])
 
     const handleSend = async () => {
@@ -100,26 +104,57 @@ const InterviewPage = () => {
 
 
         if (feedback) {
-            navigate("/reports")
+            // Calculate average score
+            const scores = [
+                feedback.technicalScore,
+                feedback.communicationScore,
+                feedback.confidenceScore,
+                feedback.structureScore
+            ].filter(s => typeof s === 'number');
+
+            const overallScore = scores.length > 0
+                ? scores.reduce((a, b) => a + b, 0) / scores.length
+                : 0;
+
+            try {
+                await saveInterview(currentUser.uid, {
+                    topic,
+                    duration: 0, // Mock interviews don't track time yet, or we could add a timer
+                    transcript: messages,
+                    feedbackReportId: feedback.id,
+                    overallScore,
+                    feedbackSummary: {
+                        technical: feedback.technicalScore,
+                        communication: feedback.communicationScore,
+                        confidence: feedback.confidenceScore,
+                        structure: feedback.structureScore
+                    }
+                });
+                console.log("Mock interview saved successfully");
+            } catch (error) {
+                console.error("Failed to save mock interview:", error);
+                // Continue to navigation even if save fails, but maybe alert user?
+            }
+
+            navigate(`/report/${feedback.id}`)
         } else {
             alert("AI busy — try again in 20 seconds")
         }
     }
 
     return (
-        <div className="p-4 max-w-2xl mx-auto">
-            <h2 className="text-xl font-semibold text-center mb-4">{topic} Mock Interview 🎤</h2>
+        <div className="p-4 max-w-2xl mx-auto mt-14">
+            <h2 className="text-lg md:text-xl font-semibold text-center mb-4">{topic} Mock Interview 🎤</h2>
 
             {/* Chat */}
-            <div className="border rounded p-3 h-[350px] overflow-y-auto bg-gray-50 mb-3">
+            <div ref={chatContainerRef} className="border border-gray-800 rounded-2xl p-3 h-[350px] overflow-y-auto bg-gray-930 mb-3">
                 {messages.map((msg, i) => (
-                    <div key={i} className={`mb-2 text-sm ${msg.sender === "user" ? "text-right" : "text-left"}`}>
-                        <span className={`px-3 py-2 rounded-xl inline-block ${msg.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-black"}`}>
+                    <div key={i} className={`mb-2 text-xs md:text-sm ${msg.sender === "user" ? "text-right" : "text-left"}`}>
+                        <span className={`px-3 py-2 rounded-xl inline-block ${msg.sender === "user" ? "bg-blue-600 text-white text-xs md:text-sm" : "bg-gray-900 text-white text-xs md:text-sm"}`}>
                             {msg.text}
                         </span>
                     </div>
                 ))}
-                <div ref={chatEndRef} />
             </div>
 
             {/* Input */}
@@ -127,20 +162,20 @@ const InterviewPage = () => {
                 <input
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
-                    className="border p-2 flex-1 rounded"
+                    className="border p-2 flex-1 rounded-2xl text-xs md:text-sm"
                     placeholder="Type or speak..."
                     disabled={questionCount >= MAX_QUESTIONS}
                 />
                 <button
                     onClick={handleSend}
-                    className="bg-blue-600 text-white px-4 rounded"
+                    className="bg-blue-600 text-white px-2 rounded-2xl text-xs md:text-sm"
                     disabled={questionCount >= MAX_QUESTIONS}
                 >
                     Send
                 </button>
                 <button
                     onClick={handleSpeech}
-                    className="bg-gray-700 text-white px-3 rounded"
+                    className="bg-gray-700 text-white px-2 rounded-2xl text-sm md:text-md"
                     disabled={questionCount >= MAX_QUESTIONS}
                 >
                     🎙️
@@ -149,7 +184,7 @@ const InterviewPage = () => {
 
             {/* End Interview Button */}
             <button
-                className={`w-full mt-4 py-2 rounded ${loadingFeedback ? "bg-gray-500" : "bg-green-600 text-white"}`}
+                className={`w-full mt-4 py-2 rounded-2xl ${loadingFeedback ? "bg-gray-500" : "bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs md:text-sm"}`}
                 onClick={handleEndInterview}
                 disabled={loadingFeedback}
             >

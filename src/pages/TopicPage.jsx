@@ -34,22 +34,22 @@ const TopicPage = () => {
 
     return (
         <div className="p-6 mt-12">
-            <h1 className="text-3xl font-bold mb-2">{topic.title}</h1>
-            <div className="flex gap-4 mb-4">
+            <h1 className="text-3xl font-bold text-center md:text-left mb-4">{topic.title}</h1>
+            <div className="flex justify-center md:justify-start gap-4 mb-4">
                 <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded-2xl"
+                    className="bg-blue-600 text-white text-xs md:text-sm px-3 py-2 rounded-2xl"
                     onClick={() => navigate(`/interview?topic=${topic.title}`)}
                 >
                     Mock Interview 🎤
                 </button>
                 <button
-                    className="bg-purple-600 text-white px-4 py-2 rounded-2xl"
+                    className="bg-purple-600 text-white text-xs md:text-sm px-4 py-2 rounded-2xl"
                     onClick={() => navigate(`/voice-interview?topic=${topic.title}`)}
                 >
                     Voice Interview 🎙️
                 </button>
             </div>
-            <p className="text-gray-400 mb-6">{topic.description}</p>
+            <p className="text-gray-400 text-center md:text-left mb-6">{topic.description}</p>
 
 
             {/* Flashcards */}

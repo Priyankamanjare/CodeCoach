@@ -42,40 +42,41 @@ const ReportPage = () => {
     );
 
     const ScoreCard = ({ title, score, color }) => (
-        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-700 flex flex-col items-center">
-            <h3 className="text-gray-400 font-medium text-sm uppercase tracking-wider mb-2">{title}</h3>
-            <div className={`text-4xl font-bold text-${color}-400 mb-2`}>{score}/5</div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                    className={`bg-${color}-500 h-2 rounded-full transition-all duration-1000`}
-                    style={{ width: `${(score / 5) * 100}%` }}
-                ></div>
+        <div className="bg-gray-950 backdrop-blur-sm p-4 md:p-6 rounded-xl shadow-sm border border-gray-700 flex flex-col items-center">
+            <h3 className="text-gray-400 font-medium text-xs md:text-sm md:uppercase tracking-wider mb-2">{title}</h3>
+            <div className={`text-lg md:text-3xl font-bold text-${color}-400 mb-2`}>{score}/5</div>
+            <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                    <span key={i} className={`text-lg md:text-2xl ${i < Math.round(score) ? "text-yellow-400" : "text-gray-700"}`}>
+                        ★
+                    </span>
+                ))}
             </div>
         </div>
     );
 
     return (
-        <div className="min-h-screen p-6 pt-24">
+        <div className="min-h-screen p-6 mt-12">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
-                <div className="mb-8 flex justify-between items-center">
+                <div className="mb-8 flex justify-between items-start">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Interview Report 📊</h1>
-                        <p className="text-gray-400 mt-1">
+                        <h1 className="text-xl md:text-2xl font-bold text-white">Interview Report 📊</h1>
+                        <p className="text-gray-400 mt-1 text-xs md:text-sm">
                             Topic: <span className="font-semibold text-gray-200">{report.topic}</span> •
                             Date: {report.createdAt?.seconds ? new Date(report.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}
                         </p>
                     </div>
                     <button
                         onClick={() => navigate('/history')}
-                        className="text-gray-300 hover:text-white font-medium flex items-center gap-2 bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-700 shadow-sm hover:shadow transition"
+                        className="text-gray-300 hover:text-white text-xs md:text-sm flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-2 py-2 rounded-lg border border-gray-700 shadow-sm hover:shadow transition"
                     >
                         ← Back to History
                     </button>
                 </div>
 
                 {/* Scores Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <ScoreCard title="Technical" score={report.technicalScore} color="blue" />
                     <ScoreCard title="Communication" score={report.communicationScore} color="purple" />
                     <ScoreCard title="Confidence" score={report.confidenceScore || 0} color="green" />
@@ -83,11 +84,11 @@ const ReportPage = () => {
                 </div>
 
                 {/* Suggestions Section */}
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-700 p-8">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <div className="bg-gray-950 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-700 p-8">
+                    <h2 className="text-lg md:text-xl font-bold text-white mb-4 flex items-center gap-2">
                         💡 Suggestions for Improvement
                     </h2>
-                    <div className="prose prose-invert max-w-none text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    <div className="prose prose-invert max-w-none text-gray-300 text-xs md:text-sm leading-relaxed whitespace-pre-wrap">
                         {report.suggestions}
                     </div>
                 </div>
