@@ -11,6 +11,7 @@ import VoiceInterviewPage from "./pages/VoiceInterviewPage"
 import HistoryPage from "./pages/HistoryPage"
 
 import ReportPage from "./pages/ReportPage"
+import HomePage from './pages/HomePage'
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import ScrollToTop from "./components/ScrollToTop"
@@ -42,7 +43,7 @@ const App = () => {
     <div className='min-h-screen p-4'>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login"
           element={!currentUser ? <LoginPage /> : <Navigate to="/dashboard" />} />
         <Route path="/register"
